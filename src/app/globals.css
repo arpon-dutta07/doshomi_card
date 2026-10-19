@@ -1,26 +1,199 @@
 @import "tailwindcss";
+@import "../styles/letter.css";
+@import "../styles/mishti.css";
+@import "../styles/bisorjon.css";
+@import "../styles/creator.css";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* লালপাড় সাদা শাড়ি */
+  --saree: #f5eee0;
+  --saree-deep: #ebe0c9;
+  --sindoor: #d61f1f;
+  --sindoor-deep: #a8101a;
+  --zari: #c9a14a;
+  --text: #2b1611;
+  --muted: #6d5446;
+
+  /* ইনল্যান্ড লেটার */
+  --inland: #b7d0e8;
+  --inland-in: #d7e6f3;
+  --inland-print: #3b5f8c;
+  --ink: #1d2f63;
+
+  --paan: #3f7a2b;
+  --night: #070d1c;
+
+  --font-hand: var(--font-galada), "Galada", cursive;
+  --font-letter: var(--font-atma), "Atma", system-ui, sans-serif;
+  --font-ui: var(--font-hind), "Hind Siliguri", system-ui, sans-serif;
+
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .16 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --temple: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='11'%3E%3Cpath d='M0 11 L9 0 L18 11 Z' fill='%23b3121c'/%3E%3C/svg%3E");
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background: var(--saree);
+  color: var(--text);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-ui);
+  min-height: 100svh;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+  font: inherit;
+}
+
+/* Silk-white saree background with a soft sheen */
+.saree-bg {
+  background-color: var(--saree);
+  background-image:
+    var(--noise),
+    linear-gradient(118deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.4) 52%, rgba(255, 255, 255, 0) 74%),
+    radial-gradient(120% 80% at 50% 0%, #fbf6ec 0%, var(--saree) 55%, var(--saree-deep) 100%);
+}
+
+/* লালপাড়: temple triangles, a zari line, then the red border */
+.paar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 30px;
+  pointer-events: none;
+  background:
+    var(--temple) repeat-x left top / 18px 11px,
+    linear-gradient(
+        to bottom,
+        transparent 0 11px,
+        #b3121c 11px 14px,
+        var(--zari) 14px 15px,
+        #b3121c 15px 22px,
+        var(--zari) 22px 23px,
+        #a00f18 23px
+      );
+}
+.paar.bottom {
+  bottom: 0;
+}
+.paar.top {
+  top: 0;
+  transform: scaleY(-1);
+  height: 22px;
+}
+
+/* Bottom dock shared by every scene: one hint line or one action */
+.dock {
+  min-height: 64px;
+  width: min(92vw, 440px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  position: relative;
+  z-index: 30;
+}
+.hint {
+  font-family: var(--font-letter);
+  font-size: 17px;
+  color: var(--sindoor-deep);
+  background: rgba(255, 250, 240, 0.86);
+  border: 1px solid rgba(168, 16, 26, 0.18);
+  padding: 7px 16px;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(120, 40, 20, 0.08);
+}
+.hint.on-dark {
+  color: #f6dfb0;
+  background: rgba(10, 18, 40, 0.55);
+  border-color: rgba(246, 223, 176, 0.25);
+}
+.btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 26px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  background: var(--sindoor);
+  color: #fff6ea;
+  box-shadow: 0 6px 18px rgba(168, 16, 26, 0.32), inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--sindoor-deep);
+  box-shadow: inset 0 0 0 1.5px rgba(168, 16, 26, 0.5);
+}
+.btn.light {
+  background: #f6dfb0;
+  color: #3a1608;
+  box-shadow: 0 6px 22px rgba(246, 199, 107, 0.35);
+}
+.btn.ghost-light {
+  background: transparent;
+  color: #f6dfb0;
+  box-shadow: inset 0 0 0 1.5px rgba(246, 223, 176, 0.55);
+}
+.btn.small {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* A soft pulsing dot that stands in for a finger */
+.finger {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border-radius: 50%;
+  background: rgba(214, 31, 31, 0.22);
+  border: 2px solid rgba(214, 31, 31, 0.65);
+  pointer-events: none;
+  box-shadow: 0 0 0 6px rgba(214, 31, 31, 0.08);
+}
+
+@keyframes flicker {
+  0%,
+  100% {
+    transform: scale(1, 1) rotate(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(0.94, 1.06) rotate(-2deg);
+  }
+  50% {
+    transform: scale(1.04, 0.95) rotate(1.5deg);
+    opacity: 0.92;
+  }
+  75% {
+    transform: scale(0.97, 1.04) rotate(-1deg);
+  }
+}
+.flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: flicker 1.3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flame {
+    animation: none;
+  }
 }

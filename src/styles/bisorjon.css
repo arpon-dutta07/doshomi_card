@@ -1,0 +1,150 @@
+/* ---------- ভাসান: night river ---------- */
+.stage.is-night {
+  background: var(--night);
+}
+.bis {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(to bottom, #050a1b 0%, #0b1534 20%, #18264b 32%, #0b1630 33.5%);
+  user-select: none;
+}
+.bis-sky {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 33%;
+}
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+}
+.moon {
+  position: absolute;
+  top: 5%;
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #fffcee, #f1e2b4 70%, #d8c48e);
+  box-shadow: 0 0 22px 6px rgba(255, 240, 200, 0.28), 0 0 70px 20px rgba(255, 240, 200, 0.1);
+}
+.bis-bank {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  top: calc(33% - 7svh);
+  height: 7svh;
+}
+.bis-water {
+  position: absolute;
+  left: 0;
+  top: 33%;
+  width: 100%;
+  height: 67%;
+  touch-action: none;
+}
+.floater {
+  position: absolute;
+  margin-left: -15px;
+  pointer-events: none;
+  animation-name: drift, bob;
+  animation-timing-function: linear, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+  animation-direction: alternate, alternate;
+}
+.floater svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+.floater-glint {
+  position: absolute;
+  left: 30%;
+  top: 70%;
+  width: 70%;
+  height: 160%;
+  background: linear-gradient(to bottom, rgba(255, 180, 80, 0.45), rgba(255, 180, 80, 0));
+  filter: blur(3px);
+  border-radius: 50%;
+}
+@keyframes drift {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: var(--dx) 0;
+  }
+}
+@keyframes bob {
+  from {
+    transform: translateY(0) rotate(-2deg);
+  }
+  to {
+    transform: translateY(-4px) rotate(2deg);
+  }
+}
+
+.bis-boat {
+  position: absolute;
+  left: calc(50% - min(23vw, 100px));
+  bottom: calc(14svh + env(safe-area-inset-bottom));
+  width: min(46vw, 200px);
+  z-index: 3;
+  touch-action: none;
+  cursor: grab;
+  transform-origin: 50% 80%;
+}
+.boat-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.35));
+}
+
+.bis-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 9svh;
+  text-align: center;
+  z-index: 4;
+  padding: 0 16px;
+  pointer-events: none;
+}
+.bt-big {
+  font-family: var(--font-hand);
+  font-size: clamp(34px, 10.5vw, 64px);
+  color: #f6c86d;
+  text-shadow: 0 0 24px rgba(246, 190, 90, 0.5), 0 0 2px rgba(255, 220, 150, 0.6);
+  line-height: 1.3;
+}
+.bt-small {
+  font-family: var(--font-letter);
+  font-size: 18px;
+  color: #f3e6cc;
+  opacity: 0.92;
+  margin-top: 4px;
+}
+.bis-dock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 5;
+  padding: 0 16px;
+}
+.bis-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
