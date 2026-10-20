@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated source art (big); processed copies live in public/img
+art/*.png
+art/*.jpg
+art/*.jpeg
+art/*.webp

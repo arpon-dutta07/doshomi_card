@@ -30,6 +30,17 @@ export function Letter({
   const [flash, setFlash] = useState(false);
   const seed = useMemo(() => hashString(card.from + card.msg), [card.from, card.msg]);
 
+  // On short screens the open letter is taller than the screen: bring each step into view.
+  useEffect(() => {
+    if (phase !== "open") return;
+    const target =
+      step === "photo" ? ".sheet-live .polaroid" : step === "message" ? ".sheet-live .lt-msg" : ".scene .dock";
+    const id = window.setTimeout(() => {
+      document.querySelector(target)?.scrollIntoView({ behavior: "smooth", block: step === "done" ? "end" : "center" });
+    }, step === "done" ? 1300 : 250);
+    return () => window.clearTimeout(id);
+  }, [phase, step]);
+
   const bottomRot = useMotionValue(180);
   const topRot = useMotionValue(-180);
   const bottomShade = useTransform(bottomRot, (v) => Math.abs(Math.sin((v * Math.PI) / 180)) * 0.32);
