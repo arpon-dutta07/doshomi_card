@@ -1,16 +1,16 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { replyRel, type Card } from "@/lib/card";
+import type { Card } from "@/lib/card";
+import type { ChainLink } from "@/lib/db";
 import type { Scene } from "@/lib/scenes";
-import { BisorjonScene } from "./BisorjonScene";
+import { BhasanScene } from "./BhasanScene";
 import { DustLayer } from "./Dust";
 import { Letter } from "./Letter";
+import { MalaScene } from "./MalaScene";
 import { MishtiScene } from "./MishtiScene";
 import { NameGate } from "./NameGate";
-
 
 type Props = {
   card: Card;
@@ -22,6 +22,10 @@ type Props = {
   startScene?: Scene;
   /** Short-link id, so the sender's open count goes up when the letter is torn open. */
   cardId?: string;
+  /** Letters behind this one (চিঠির মালা), oldest first. */
+  chain?: ChainLink[];
+  /** Letters sent so far, for the little count under the মালা. */
+  total?: number;
 };
 
 /** Once per browser tab; a reload or a second tab of the same person doesn't count again. */
@@ -36,26 +40,22 @@ function countOpen(cardId: string) {
   fetch(`/api/cards/${cardId}/open`, { method: "POST", keepalive: true }).catch(() => {});
 }
 
-/** The whole thing the receiver sees: চিঠি → মিষ্টির বাক্স → ভাসান. */
-export function Experience({ card, photoUrl, preview = false, onClose, startScene, cardId }: Props) {
+const NIGHT: Scene[] = ["bhasan", "mala"];
+
+/** The whole thing the receiver sees: চিঠি → মিষ্টির বাক্স → ভাসান → চিঠির মালা. */
+export function Experience({ card, photoUrl, preview = false, onClose, startScene, cardId, chain = [], total = 0 }: Props) {
   const [scene, setScene] = useState<Scene>(startScene ?? (card.to ? "letter" : "name"));
   const [toName, setToName] = useState(card.to);
   const [run, setRun] = useState(0);
-  const router = useRouter();
 
   const replay = () => {
     setRun((r) => r + 1);
     setScene("letter");
   };
 
-  const reply = () => {
-    const q = new URLSearchParams({ to: card.from, from: toName, rel: replyRel(card.rel) });
-    router.push(`/?${q.toString()}#write`);
-  };
-
   return (
     <DustLayer>
-      <main className={`stage saree-bg ${scene === "bisorjon" ? "is-night" : ""} ${preview ? "is-preview" : ""}`}>
+      <main className={`stage saree-bg ${NIGHT.includes(scene) ? "is-night" : ""} ${preview ? "is-preview" : ""}`}>
         <div className="paar top" />
         <div className="paar bottom" />
 
@@ -96,24 +96,39 @@ export function Experience({ card, photoUrl, preview = false, onClose, startScen
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: 0.6 } }}
             >
-              <MishtiScene card={card} onNext={() => setScene("bisorjon")} />
+              <MishtiScene card={card} onNext={() => setScene("bhasan")} />
             </motion.section>
           )}
 
-          {scene === "bisorjon" && (
+          {scene === "bhasan" && (
             <motion.section
-              key={`bis-${run}`}
+              key={`bhasan-${run}`}
+              className="scene night"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.9 } }}
+              transition={{ duration: 1.4 }}
+            >
+              <BhasanScene card={card} onNext={() => setScene("mala")} onReplay={replay} />
+            </motion.section>
+          )}
+
+          {scene === "mala" && (
+            <motion.section
+              key={`mala-${run}`}
               className="scene night"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 1.2 }}
+              transition={{ duration: 1 }}
             >
-              <BisorjonScene
+              <MalaScene
                 card={card}
+                toName={toName}
+                cardId={cardId}
+                chain={chain}
+                total={total}
                 preview={preview}
-                onReply={reply}
-                onMake={() => router.push("/#write")}
                 onReplay={replay}
                 onClose={onClose}
               />
@@ -121,7 +136,7 @@ export function Experience({ card, photoUrl, preview = false, onClose, startScen
           )}
         </AnimatePresence>
 
-        {preview && scene !== "bisorjon" && (
+        {preview && !NIGHT.includes(scene) && (
           <button className="btn small ghost preview-close" onClick={onClose}>
             Close preview
           </button>

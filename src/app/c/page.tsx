@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { BrokenLetter } from "@/components/experience/BrokenLetter";
 import { Experience } from "@/components/experience/Experience";
 import { decodeCard } from "@/lib/card";
+import { countCards } from "@/lib/db";
 import { cardMetadata } from "@/lib/meta";
 
 // Fallback links carry the whole card in ?d=, so this page renders per request.
@@ -16,5 +17,5 @@ export async function generateMetadata({ searchParams }: PageProps<"/c">): Promi
 export default async function CardPage({ searchParams }: PageProps<"/c">) {
   const card = decodeCard(read((await searchParams).d));
   if (!card) return <BrokenLetter />;
-  return <Experience card={card} />;
+  return <Experience card={card} total={await countCards()} />;
 }

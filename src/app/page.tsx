@@ -10,5 +10,6 @@ const str = (v: string | string[] | undefined) => (typeof v === "string" ? v.sli
 export default async function Home({ searchParams }: PageProps<"/">) {
   const sp = await searchParams;
   const rel = RELS.find((r) => r === sp.rel);
-  return <Creator initial={{ to: str(sp.to), from: str(sp.from), rel }} />;
+  const parent = /^[A-Za-z0-9]{10}$/.test(str(sp.parent)) ? str(sp.parent) : undefined;
+  return <Creator initial={{ to: str(sp.to), from: str(sp.from), rel, parent }} />;
 }

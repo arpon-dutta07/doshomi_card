@@ -1,5 +1,5 @@
 import { parseCard } from "@/lib/card";
-import { db, MAX_PHOTO_BYTES, newId, PHOTO_BUCKET, PHOTO_TYPES } from "@/lib/db";
+import { db, ID_RE, MAX_PHOTO_BYTES, newId, PHOTO_BUCKET, PHOTO_TYPES } from "@/lib/db";
 
 const fail = (error: string, status: number) => Response.json({ error }, { status });
 
@@ -35,7 +35,11 @@ export async function POST(request: Request) {
     if (error) return fail("upload", 502);
   }
 
-  const { error } = await s.from("cards").insert({
+  // The letter this one answers, for চিঠির মালা
+  const parentRaw = String(form.get("parent") ?? "");
+  const parent = ID_RE.test(parentRaw) ? parentRaw : null;
+
+  const row = {
     id,
     to_name: card.to,
     from_name: card.from,
@@ -43,7 +47,11 @@ export async function POST(request: Request) {
     msg: card.msg,
     sweets: card.sweets,
     photo_path: photoPath,
-  });
+  };
+  const withParent: Record<string, unknown> = parent ? { ...row, parent_id: parent } : row;
+  let { error } = await s.from("cards").insert(withParent);
+  // parent_id missing (002_chain.sql not run yet) or the parent was deleted: save without the link
+  if (error && parent) ({ error } = await s.from("cards").insert(row));
   if (error) {
     if (photoPath) await s.storage.from(PHOTO_BUCKET).remove([photoPath]);
     return fail("save", 502);

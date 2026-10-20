@@ -5,32 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { Sweet } from "@/components/art/Sweet";
 import { AddressSide } from "@/components/experience/LetterFaces";
 import { Experience } from "@/components/experience/Experience";
-import {
-  cardPath,
-  isTui,
-  LIMITS,
-  normalizeCard,
-  REL_LABEL,
-  salutation,
-  SWEET_NAME,
-  SWEETS,
-  type Card,
-  type Rel,
-  type SweetId,
-} from "@/lib/card";
-import { compressPhoto } from "@/lib/compress";
+import { LIMITS, normalizeCard, REL_LABEL, salutation, SWEET_NAME, SWEETS, type Rel, type SweetId } from "@/lib/card";
 import { READY_LINES } from "@/lib/copy";
+import { copyText, createLetter, nativeShare, whatsappUrl } from "@/lib/share";
 
 const QUICK_NAMES = ["মা", "বাবা", "দিদা", "দাদু", "ঠাম্মা", "পিসি", "মাসি", "কাকু", "জেঠু"];
 const RELS: Rel[] = ["elder", "friend", "younger", "office"];
 
-function shareText(card: Card, link: string) {
-  if (!card.to) return `একটা বিজয়ার চিঠি পাঠালাম। খুলে নিজের নাম বসাও: ${link}`;
-  const tui = isTui(card.rel);
-  return `${card.to}, ${tui ? "তোর" : "তোমার"} নামে একটা বিজয়ার চিঠি এসেছে। ${tui ? "খুলে দেখ" : "খুলে দেখো"}: ${link}`;
-}
-
-export function Creator({ initial }: { initial: { to?: string; from?: string; rel?: Rel } }) {
+export function Creator({ initial }: { initial: { to?: string; from?: string; rel?: Rel; parent?: string } }) {
   const [to, setTo] = useState(initial.to ?? "");
   const [from, setFrom] = useState(initial.from ?? "");
   const [rel, setRel] = useState<Rel>(initial.rel ?? "elder");
@@ -99,41 +81,12 @@ export function Creator({ initial }: { initial: { to?: string; from?: string; re
     setLink(null);
   };
 
-  /** Short link through Supabase; if that fails, the whole card goes inside the link instead (no photo). */
   const createLink = async () => {
     if (!ready || busy) return;
     setBusy(true);
     setNote(null);
-    const origin = window.location.origin;
-    let url: string | null = null;
-    let photoTrouble = false;
-
-    try {
-      const form = new FormData();
-      form.set("card", JSON.stringify(card));
-      if (fileRef.current) {
-        try {
-          const small = await compressPhoto(fileRef.current);
-          form.set("photo", small, small.type === "image/webp" ? "photo.webp" : "photo.jpg");
-        } catch {
-          photoTrouble = true;
-        }
-      }
-      const res = await fetch("/api/cards", { method: "POST", body: form });
-      if (res.ok) {
-        const { id } = (await res.json()) as { id: string };
-        url = `${origin}/c/${id}`;
-      }
-    } catch {
-      // offline or server down: fall through to the in-link card
-    }
-
-    if (!url) {
-      url = `${origin}${cardPath(card)}`;
-      if (fileRef.current) photoTrouble = true;
-    }
-    if (photoTrouble) setNote("ছবিটা এবার পাঠানো গেল না, তাই ছবি ছাড়াই link বানালাম। চাইলে একটু পরে আবার চেষ্টা করো।");
-
+    const { url, photoDropped } = await createLetter(card, { photo: fileRef.current, parent: initial.parent });
+    if (photoDropped) setNote("ছবিটা এবার পাঠানো গেল না, তাই ছবি ছাড়াই link বানালাম। চাইলে একটু পরে আবার চেষ্টা করো।");
     setLink(url);
     setCopied(false);
     setBusy(false);
@@ -142,23 +95,12 @@ export function Creator({ initial }: { initial: { to?: string; from?: string; re
 
   const copy = async () => {
     if (!link) return;
-    try {
-      await navigator.clipboard.writeText(link);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1800);
-    } catch {
-      setCopied(false);
-    }
+    const ok = await copyText(link);
+    setCopied(ok);
+    if (ok) window.setTimeout(() => setCopied(false), 1800);
   };
 
-  const share = async () => {
-    if (!link) return;
-    try {
-      await navigator.share({ title: "বিজয়ার চিঠি", text: shareText(card, "").replace(/: $/, ""), url: link });
-    } catch {
-      // closed the share sheet
-    }
-  };
+  const share = () => link && nativeShare(card, link);
 
   return (
     <main className="creator saree-bg">
@@ -325,7 +267,7 @@ export function Creator({ initial }: { initial: { to?: string; from?: string; re
             <p className="result-link">{link}</p>
             {note && <p className="q-note center">{note}</p>}
             <div className="result-actions">
-              <a className="btn wa" href={`https://wa.me/?text=${encodeURIComponent(shareText(card, link))}`} target="_blank" rel="noreferrer">
+              <a className="btn wa" href={whatsappUrl(card, link)} target="_blank" rel="noreferrer">
                 WhatsApp
               </a>
               <button type="button" className="btn ghost" onClick={copy}>

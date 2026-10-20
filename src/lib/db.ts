@@ -40,6 +40,32 @@ type CardRow = {
   photo_path: string | null;
 };
 
+export type ChainLink = { id: string; from: string; to: string };
+
+/**
+ * The letters behind this one, oldest first, ending with this letter (চিঠির মালা).
+ * Empty until supabase/002_chain.sql has been run.
+ */
+export const loadChain = cache(async (id: string): Promise<ChainLink[]> => {
+  const s = db();
+  if (!s || !ID_RE.test(id)) return [];
+  const { data, error } = await s.rpc("card_chain", { start_id: id });
+  if (error || !Array.isArray(data)) return [];
+  return (data as { id: string; from_name: string; to_name: string }[]).map((r) => ({
+    id: r.id,
+    from: r.from_name,
+    to: r.to_name,
+  }));
+});
+
+/** How many letters have gone out in total, for a little social proof. */
+export const countCards = cache(async (): Promise<number> => {
+  const s = db();
+  if (!s) return 0;
+  const { count } = await s.from("cards").select("id", { count: "exact", head: true });
+  return count ?? 0;
+});
+
 /** One read per request, shared by generateMetadata and the page. */
 export const loadCard = cache(async (id: string): Promise<Card | null> => {
   const s = db();
