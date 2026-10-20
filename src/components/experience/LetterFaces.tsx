@@ -1,5 +1,6 @@
 "use client";
 
+import { art } from "@/lib/art";
 import { BANGLA_YEAR, POST_TOWN, salutation, signoff, type Card } from "@/lib/card";
 import { DurgaEyes } from "../art/DurgaEyes";
 import { Postmark, Scissors, Stamp } from "../art/Postal";
@@ -63,7 +64,8 @@ type FaceProps = {
 /** Inside of the letter. Rendered once live, and as static copies inside the folding panels. */
 export function SheetFace({ card, toName, photoUrl, seed, live, step, onPhotoRevealed, onMessageRevealed }: FaceProps) {
   const sign = signoff(card.rel, card.from);
-  const photo = photoUrl ?? card.photo;
+  // No photo from the sender: Ma on Dashami (a real photo once it exists, the painted eyes until then)
+  const photo = photoUrl ?? card.photo ?? art("ma-dashami")?.src;
   return (
     <div className="sheet-face">
       <span className="crease c1" />

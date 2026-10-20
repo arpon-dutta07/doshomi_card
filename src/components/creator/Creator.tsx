@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Sweet } from "@/components/art/Sweet";
 import { AddressSide } from "@/components/experience/LetterFaces";
 import { Experience } from "@/components/experience/Experience";
+import { art } from "@/lib/art";
 import { LIMITS, normalizeCard, REL_LABEL, salutation, SWEET_NAME, SWEETS, type Rel, type SweetId } from "@/lib/card";
 import { READY_LINES } from "@/lib/copy";
 import { copyText, createLetter, nativeShare, whatsappUrl } from "@/lib/share";
@@ -232,7 +233,7 @@ export function Creator({ initial }: { initial: { to?: string; from?: string; re
 
         <div className="q">
           <p className="q-label">
-            <span className="q-num">৬</span> ছবি <span className="q-opt">(না দিলে মায়ের চোখ থাকবে)</span>
+            <span className="q-num">৬</span> ছবি <span className="q-opt">{art("ma-dashami") ? "(না দিলে মায়ের ছবি থাকবে)" : "(না দিলে মায়ের চোখ থাকবে)"}</span>
           </p>
           {photo ? (
             <div className="photo-row">

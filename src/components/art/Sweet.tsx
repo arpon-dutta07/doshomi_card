@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { SweetId } from "@/lib/card";
+import { art } from "@/lib/art";
 import { r2, rng } from "@/lib/rand";
 import { useSvgId } from "./useSvgId";
 
@@ -158,6 +159,8 @@ function body(id: SweetId, u: string): ReactNode {
 
 export function Sweet({ id, bites = 0, className }: { id: SweetId; bites?: number; className?: string }) {
   const u = useSvgId();
+  // A real photo once it has been made; the bite masks work the same on it
+  const photo = art(`sweet-${id}`);
   return (
     <svg viewBox="0 0 100 100" className={className} aria-hidden>
       <defs>
@@ -169,7 +172,9 @@ export function Sweet({ id, bites = 0, className }: { id: SweetId; bites?: numbe
         </mask>
       </defs>
       <ellipse cx="50" cy="90" rx="30" ry="5" fill="rgba(70,35,10,0.16)" />
-      <g mask={`url(#${u}m)`}>{body(id, u)}</g>
+      <g mask={`url(#${u}m)`}>
+        {photo ? <image href={photo.src} x="5" y="5" width="90" height="88" preserveAspectRatio="xMidYMid meet" /> : body(id, u)}
+      </g>
     </svg>
   );
 }

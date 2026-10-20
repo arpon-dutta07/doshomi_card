@@ -2,6 +2,7 @@
 
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
 import { useRef, useState, type ReactNode } from "react";
+import { art } from "@/lib/art";
 import { buzz } from "@/lib/haptics";
 import { PaanLeaf } from "../art/PaanLeaf";
 
@@ -47,9 +48,14 @@ function Leaf({ side, live, onGone }: { side: "left" | "right"; live: boolean; o
     animate(opacity, 0, { duration: 0.45, delay: 0.2 }).then(onGone);
   };
 
+  // Real leaf photos once they exist; the second leaf falls back to a mirrored first one
+  const own = art(side === "left" ? "paan-leaf-1" : "paan-leaf-2");
+  const photo = own ?? art("paan-leaf-1");
+  const mirror = side === "right" && !own;
+
   return (
     <motion.div
-      className={`paan-leaf ${side}`}
+      className={`paan-leaf ${side} ${photo ? "is-photo" : ""}`}
       style={{ x, y, rotate, opacity }}
       drag={live ? "x" : false}
       dragMomentum={false}
@@ -60,7 +66,20 @@ function Leaf({ side, live, onGone }: { side: "left" | "right"; live: boolean; o
       }}
       onTap={live ? () => fly(out) : undefined}
     >
-      <PaanLeaf className="paan-svg" />
+      {photo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={photo.src}
+          width={photo.w}
+          height={photo.h}
+          alt=""
+          draggable={false}
+          className="paan-svg"
+          style={mirror ? { scale: "-1 1" } : undefined}
+        />
+      ) : (
+        <PaanLeaf className="paan-svg" />
+      )}
     </motion.div>
   );
 }

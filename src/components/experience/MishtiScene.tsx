@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { SWEET_NAME, type Card, type SweetId } from "@/lib/card";
 import { SWEET_LINES } from "@/lib/copy";
+import { art } from "@/lib/art";
 import { buzz } from "@/lib/haptics";
 import { r2 } from "@/lib/rand";
 import { Sweet, SWEET_COLORS } from "../art/Sweet";
@@ -18,6 +19,9 @@ export function MishtiScene({ card, onNext }: { card: Card; onNext: () => void }
   const [line, setLine] = useState<{ id: SweetId; n: number } | null>(null);
   const dust = useDust();
   const finished = bites.filter((b) => b >= BITES_TO_FINISH).length;
+  // Real cardboard once the photos exist
+  const boxPhoto = art("box-open");
+  const lidPhoto = art("box-lid");
 
   const openBox = () => {
     if (open) return;
@@ -53,8 +57,11 @@ export function MishtiScene({ card, onNext }: { card: Card; onNext: () => void }
         transition={{ type: "spring", stiffness: 120, damping: 14 }}
       >
         <div className="box">
-          <div className="box-inside">
-            <Doily />
+          <div
+            className={`box-inside ${boxPhoto ? "is-photo" : ""}`}
+            style={boxPhoto ? { backgroundImage: `url(${boxPhoto.src})` } : undefined}
+          >
+            {!boxPhoto && <Doily />}
             <div className={`sweets n${card.sweets.length}`}>
               {card.sweets.map((id, i) => (
                 <div className="sweet-slot" key={id}>
@@ -86,7 +93,10 @@ export function MishtiScene({ card, onNext }: { card: Card; onNext: () => void }
             animate={open ? { rotateX: -104, y: -2 } : { rotateX: 0, y: 0 }}
             transition={{ duration: 0.95, ease: [0.3, 0.1, 0.2, 1], delay: open ? 0.15 : 0 }}
           >
-            <div className="lid-face front">
+            <div
+              className={`lid-face front ${lidPhoto ? "is-photo" : ""}`}
+              style={lidPhoto ? { backgroundImage: `url(${lidPhoto.src})` } : undefined}
+            >
               <div className="lid-print">
                 <p className="lp-est">স্থাপিত ১৯৬২</p>
                 <p className="lp-name">
