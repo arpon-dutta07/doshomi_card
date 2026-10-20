@@ -22,7 +22,10 @@ let client: SupabaseClient | null | undefined;
 /** Null until SUPABASE_URL and the secret key are in .env.local; callers then fall back to in-link cards. */
 export function db(): SupabaseClient | null {
   if (client !== undefined) return client;
-  const url = process.env.SUPABASE_URL;
+  // People often copy the REST endpoint (…supabase.co/rest/v1/); the client wants the bare project URL.
+  const url = process.env.SUPABASE_URL?.trim()
+    .replace(/\/+$/, "")
+    .replace(/\/rest\/v1$/, "");
   const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
   client = url && key ? createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } }) : null;
   return client;
