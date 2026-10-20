@@ -18,6 +18,7 @@ import {
   type Rel,
   type SweetId,
 } from "@/lib/card";
+import { compressPhoto } from "@/lib/compress";
 import { READY_LINES } from "@/lib/copy";
 
 const QUICK_NAMES = ["মা", "বাবা", "দিদা", "দাদু", "ঠাম্মা", "পিসি", "মাসি", "কাকু", "জেঠু"];
@@ -40,7 +41,10 @@ export function Creator({ initial }: { initial: { to?: string; from?: string; re
   const [preview, setPreview] = useState(false);
   const [copied, setCopied] = useState(false);
   const [canShare, setCanShare] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
   const photoRef = useRef<string | null>(null);
+  const fileRef = useRef<File | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
   const card = normalizeCard({ to, from, rel, msg, sweets });
@@ -82,19 +86,57 @@ export function Creator({ initial }: { initial: { to?: string; from?: string; re
     if (photoRef.current) URL.revokeObjectURL(photoRef.current);
     const url = URL.createObjectURL(file);
     photoRef.current = url;
+    fileRef.current = file;
     setPhoto(url);
+    setLink(null);
   };
 
   const removePhoto = () => {
     if (photoRef.current) URL.revokeObjectURL(photoRef.current);
     photoRef.current = null;
+    fileRef.current = null;
     setPhoto(null);
+    setLink(null);
   };
 
-  const createLink = () => {
-    if (!ready) return;
-    setLink(`${window.location.origin}${cardPath(card)}`);
+  /** Short link through Supabase; if that fails, the whole card goes inside the link instead (no photo). */
+  const createLink = async () => {
+    if (!ready || busy) return;
+    setBusy(true);
+    setNote(null);
+    const origin = window.location.origin;
+    let url: string | null = null;
+    let photoTrouble = false;
+
+    try {
+      const form = new FormData();
+      form.set("card", JSON.stringify(card));
+      if (fileRef.current) {
+        try {
+          const small = await compressPhoto(fileRef.current);
+          form.set("photo", small, small.type === "image/webp" ? "photo.webp" : "photo.jpg");
+        } catch {
+          photoTrouble = true;
+        }
+      }
+      const res = await fetch("/api/cards", { method: "POST", body: form });
+      if (res.ok) {
+        const { id } = (await res.json()) as { id: string };
+        url = `${origin}/c/${id}`;
+      }
+    } catch {
+      // offline or server down: fall through to the in-link card
+    }
+
+    if (!url) {
+      url = `${origin}${cardPath(card)}`;
+      if (fileRef.current) photoTrouble = true;
+    }
+    if (photoTrouble) setNote("ছবিটা এবার পাঠানো গেল না, তাই ছবি ছাড়াই link বানালাম। চাইলে একটু পরে আবার চেষ্টা করো।");
+
+    setLink(url);
     setCopied(false);
+    setBusy(false);
     window.setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
   };
 
@@ -264,16 +306,15 @@ export function Creator({ initial }: { initial: { to?: string; from?: string; re
               <input type="file" accept="image/*" hidden onChange={(e) => pickPhoto(e.target.files?.[0])} />
             </label>
           )}
-          {/* TODO(supabase): remove this note once photos upload with the link */}
-          <p className="q-note">ছবি এখন শুধু Preview-তে দেখা যাবে। Link-এ ছবি পাঠানো শিগগির চালু হচ্ছে।</p>
+          <p className="q-note">ছবিটা phone-এই ছোট করে পাঠানো হবে। পান পাতার নিচে লুকোনো থাকবে, ৩০ দিন পরে নিজে থেকে মুছে যাবে।</p>
         </div>
 
         <div className="actions">
           <button type="button" className="btn ghost" disabled={!ready} onClick={() => setPreview(true)}>
             Preview
           </button>
-          <button type="button" className="btn" disabled={!ready} onClick={createLink}>
-            Create link
+          <button type="button" className="btn" disabled={!ready || busy} onClick={createLink}>
+            {busy ? "Making link…" : "Create link"}
           </button>
         </div>
         {!ready && <p className="q-note center">নিজের নাম আর চিঠির লেখাটা দিলেই link তৈরি হবে।</p>}
@@ -282,6 +323,7 @@ export function Creator({ initial }: { initial: { to?: string; from?: string; re
           <div className="result" ref={resultRef}>
             <p className="result-title">চিঠি রেডি। এবার পাঠাও।</p>
             <p className="result-link">{link}</p>
+            {note && <p className="q-note center">{note}</p>}
             <div className="result-actions">
               <a className="btn wa" href={`https://wa.me/?text=${encodeURIComponent(shareText(card, link))}`} target="_blank" rel="noreferrer">
                 WhatsApp

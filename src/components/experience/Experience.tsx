@@ -20,10 +20,24 @@ type Props = {
   onClose?: () => void;
   /** Jump straight to one part (used by /demo?scene=… while designing). */
   startScene?: Scene;
+  /** Short-link id, so the sender's open count goes up when the letter is torn open. */
+  cardId?: string;
 };
 
+/** Once per browser tab; a reload or a second tab of the same person doesn't count again. */
+function countOpen(cardId: string) {
+  try {
+    const key = `opened:${cardId}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+  } catch {
+    // storage blocked: count anyway
+  }
+  fetch(`/api/cards/${cardId}/open`, { method: "POST", keepalive: true }).catch(() => {});
+}
+
 /** The whole thing the receiver sees: চিঠি → মিষ্টির বাক্স → ভাসান. */
-export function Experience({ card, photoUrl, preview = false, onClose, startScene }: Props) {
+export function Experience({ card, photoUrl, preview = false, onClose, startScene, cardId }: Props) {
   const [scene, setScene] = useState<Scene>(startScene ?? (card.to ? "letter" : "name"));
   const [toName, setToName] = useState(card.to);
   const [run, setRun] = useState(0);
@@ -64,7 +78,13 @@ export function Experience({ card, photoUrl, preview = false, onClose, startScen
               className="scene"
               exit={{ opacity: 0, y: -80, transition: { duration: 0.5, ease: [0.5, 0, 0.75, 0] } }}
             >
-              <Letter card={card} toName={toName} photoUrl={photoUrl} onNext={() => setScene("mishti")} />
+              <Letter
+                card={card}
+                toName={toName}
+                photoUrl={photoUrl}
+                onOpened={cardId && !preview ? () => countOpen(cardId) : undefined}
+                onNext={() => setScene("mishti")}
+              />
             </motion.section>
           )}
 

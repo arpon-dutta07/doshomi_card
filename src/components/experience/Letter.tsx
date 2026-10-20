@@ -16,11 +16,13 @@ export function Letter({
   card,
   toName,
   photoUrl,
+  onOpened,
   onNext,
 }: {
   card: Card;
   toName: string;
   photoUrl?: string;
+  onOpened?: () => void;
   onNext: () => void;
 }) {
   const [phase, setPhase] = useState<Phase>("sealed");
@@ -35,6 +37,7 @@ export function Letter({
 
   const open = async () => {
     setPhase("opening");
+    onOpened?.();
     await new Promise((r) => setTimeout(r, 420));
     buzz(8);
     await animate(bottomRot, 0, { duration: 0.85, ease: FOLD_EASE });
