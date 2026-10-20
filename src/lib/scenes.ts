@@ -1,2 +1,2 @@
-export type Scene = "name" | "letter" | "mishti" | "bisorjon";
-export const SCENES: Scene[] = ["name", "letter", "mishti", "bisorjon"];
+export type Scene = "name" | "letter" | "mishti" | "bhasan" | "mala";
+export const SCENES: Scene[] = ["name", "letter", "mishti", "bhasan", "mala"];

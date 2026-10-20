@@ -1,0 +1,179 @@
+﻿/* ---------- ভাসান: Ma in the river ---------- */
+.stage.is-night {
+  background: #04070b;
+}
+.bhasan {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #04070b;
+  user-select: none;
+}
+.bh-canvas,
+.bh-fallback,
+.bh-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.bh-canvas {
+  touch-action: none;
+  z-index: 1;
+}
+.bh-photo {
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 4s ease;
+}
+/* only seen if WebGL is missing; the canvas covers it otherwise */
+.bhasan.phase-loading .p0,
+.bhasan.phase-wait .p0,
+.bhasan.phase-float .p0,
+.bhasan.phase-sink .p1,
+.bhasan.phase-farewell .p2 {
+  opacity: 1;
+}
+
+.bh-diya {
+  position: absolute;
+  left: 50%;
+  top: 80%;
+  width: min(30vw, 132px);
+  translate: -50% -50%;
+  z-index: 3;
+  touch-action: none;
+  cursor: pointer;
+}
+.bh-diya img {
+  position: relative;
+  width: 100%;
+  display: block;
+  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.55));
+  animation: diya-turn 36s linear infinite;
+}
+.bh-glow {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 150%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 196, 100, 0.5) 0%, rgba(255, 150, 60, 0.14) 38%, transparent 68%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: glow-flicker 1.7s ease-in-out infinite;
+}
+.bh-finger {
+  left: 50%;
+  top: 30%;
+  animation: lift 1.6s ease-in-out infinite;
+}
+@keyframes diya-turn {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes glow-flicker {
+  0%,
+  100% {
+    opacity: 0.85;
+    scale: 1;
+  }
+  40% {
+    opacity: 1;
+    scale: 1.05;
+  }
+  70% {
+    opacity: 0.75;
+    scale: 0.97;
+  }
+}
+@keyframes lift {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.95;
+  }
+  60% {
+    transform: translateY(-34px);
+    opacity: 0.35;
+  }
+}
+
+.bh-chant {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 11svh;
+  z-index: 4;
+  text-align: center;
+  padding: 0 16px;
+  font-family: var(--font-hand);
+  font-size: clamp(30px, 9vw, 52px);
+  line-height: 1.4;
+  color: #f6c86d;
+  text-shadow: 0 0 22px rgba(246, 190, 90, 0.55), 0 2px 8px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.bh-farewell {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  padding: 22svh 20px calc(26px + env(safe-area-inset-bottom));
+  text-align: center;
+  background: linear-gradient(to top, rgba(3, 5, 9, 0.94) 0%, rgba(3, 5, 9, 0.82) 45%, rgba(3, 5, 9, 0) 100%);
+  pointer-events: none;
+}
+.bh-farewell .bh-actions {
+  pointer-events: auto;
+}
+.bh-title {
+  font-family: var(--font-hand);
+  font-size: clamp(54px, 17vw, 92px);
+  line-height: 1.35;
+  color: #f6c86d;
+  text-shadow: 0 0 30px rgba(246, 190, 90, 0.5), 0 0 2px rgba(255, 220, 150, 0.7);
+}
+.bh-line {
+  font-family: var(--font-letter);
+  font-size: clamp(17px, 4.8vw, 21px);
+  line-height: 1.6;
+  color: #f1e5cc;
+  max-width: 420px;
+  margin: 6px auto 0;
+  text-wrap: balance;
+}
+.bh-line.strong {
+  color: #fff3dc;
+  font-weight: 500;
+}
+.bh-from {
+  font-family: var(--font-hand);
+  font-size: clamp(26px, 7vw, 34px);
+  line-height: 1.5;
+  color: #f6c86d;
+  margin-top: 8px;
+}
+.bh-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16px;
+}
+.bh-dock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  z-index: 4;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+  pointer-events: none;
+}

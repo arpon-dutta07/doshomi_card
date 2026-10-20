@@ -24,6 +24,15 @@ export const READY_LINES: Record<Rel, string[]> = {
   ],
 };
 
+/** The ending blessing, the way people actually write it on Bijoya cards. */
+export const BIJOYA_GREETING: Record<Rel, string> = {
+  elder: "বিজয়ার প্রণাম নিও।",
+  friend: "বিজয়ার অনেক ভালোবাসা নিস।",
+  younger: "বিজয়ার আশীর্বাদ আর ভালোবাসা নিস।",
+  office: "বিজয়ার প্রীতি ও শুভেচ্ছা রইল।",
+};
+export const FAMILY_BLESSING = "বাড়ির সবাই ভালো থাকুক, সুস্থ থাকুক, সারা বছর আনন্দে থাকুক।";
+
 /** Shows up on a paper chit after the sweet is finished. */
 export const SWEET_LINES: Record<SweetId, string> = {
   rosogolla: "রস জামায় পড়েছে তো? জানতাম।",
