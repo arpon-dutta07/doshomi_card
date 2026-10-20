@@ -1,16 +1,61 @@
 "use client";
 
-import { animate, AnimatePresence, motion, useMotionValue, useTransform, type MotionValue } from "motion/react";
+import { animate, AnimatePresence, motion, useMotionValue, useSpring, useTransform, type MotionValue } from "motion/react";
 import { useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { isTui, type Card } from "@/lib/card";
 import { buzz } from "@/lib/haptics";
 import { hashString, rng } from "@/lib/rand";
 import { Scissors } from "../art/Postal";
+import { useDust } from "./Dust";
 import { AddressSide, SenderSide, SheetFace, type Step } from "./LetterFaces";
 
 type Phase = "sealed" | "opening" | "open";
 
 const FOLD_EASE = [0.45, 0.05, 0.2, 1] as const;
+
+/** The folded letter drifts down like a sheet of paper: swaying, tipping, then settling on the saree. */
+const ARRIVE = {
+  y: ["-108vh", "-62vh", "-28vh", "-6vh", "0vh"],
+  x: [0, 34, -26, 10, 0],
+  rotate: [-24, 14, -10, 3, -2.5],
+  rotateX: [58, -24, 16, -5, 0],
+};
+const ARRIVE_T = { duration: 1.9, times: [0, 0.3, 0.6, 0.85, 1], ease: "easeOut" as const };
+const LANDED_MS = 1750;
+const OPEN_POSE = { y: "0vh", x: 0, rotate: 0, rotateX: 0 };
+
+/** A gentle 3D tilt with the phone (Android) or the mouse, so the sealed letter feels like an object. */
+function useTilt(active: boolean) {
+  const rx = useSpring(0, { stiffness: 90, damping: 14 });
+  const ry = useSpring(0, { stiffness: 90, damping: 14 });
+  useEffect(() => {
+    if (!active) {
+      rx.set(0);
+      ry.set(0);
+      return;
+    }
+    const clamp = (v: number) => Math.max(-8, Math.min(8, v));
+    let base: number | null = null;
+    const onMove = (e: globalThis.PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      rx.set(clamp(-((e.clientY / window.innerHeight) * 2 - 1) * 7));
+      ry.set(clamp(((e.clientX / window.innerWidth) * 2 - 1) * 7));
+    };
+    const onTilt = (e: DeviceOrientationEvent) => {
+      if (e.beta == null || e.gamma == null) return;
+      base ??= e.beta;
+      rx.set(clamp(-(e.beta - base) / 3));
+      ry.set(clamp(e.gamma / 3));
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("deviceorientation", onTilt);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("deviceorientation", onTilt);
+    };
+  }, [active, rx, ry]);
+  return { rx, ry };
+}
 
 export function Letter({
   card,
@@ -40,6 +85,23 @@ export function Letter({
     }, step === "done" ? 1300 : 250);
     return () => window.clearTimeout(id);
   }, [phase, step]);
+
+  const dust = useDust();
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const { rx, ry } = useTilt(phase === "sealed");
+
+  // A little puff of dust where the letter lands
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      const r = sheetRef.current?.querySelector(".fold-shadow")?.getBoundingClientRect();
+      if (!r || !dust) return;
+      const paper = ["#efe6d2", "#d8c9a8", "#ffffff", "#c9b48a"];
+      for (const fx of [0.08, 0.3, 0.5, 0.7, 0.92]) {
+        dust.burst(r.left + r.width * fx, r.bottom - 4, paper, 7, { speed: 170, gravity: 260, size: [0.8, 2.2], life: [0.5, 1.1] });
+      }
+    }, LANDED_MS);
+    return () => window.clearTimeout(id);
+  }, [dust]);
 
   const bottomRot = useMotionValue(180);
   const topRot = useMotionValue(-180);
@@ -79,11 +141,14 @@ export function Letter({
 
   return (
     <>
+      <motion.div className="sheet-tilt" style={{ rotateX: rx, rotateY: ry, transformPerspective: 1100 }}>
       <motion.div
+        ref={sheetRef}
         className="sheet"
-        initial={{ y: -40, opacity: 0, rotate: -2.5 }}
-        animate={{ y: 0, opacity: 1, rotate: phase === "sealed" ? -2.5 : 0 }}
-        transition={{ type: "spring", stiffness: 140, damping: 18 }}
+        style={{ transformPerspective: 1000 }}
+        initial={{ y: "-108vh", x: 0, rotate: -24, rotateX: 58 }}
+        animate={phase === "sealed" ? ARRIVE : OPEN_POSE}
+        transition={phase === "sealed" ? ARRIVE_T : { type: "spring", stiffness: 140, damping: 18 }}
       >
         {phase !== "open" ? (
           <>
@@ -106,7 +171,12 @@ export function Letter({
             {phase === "sealed" && <TearStrip onTorn={open} />}
             <AnimatePresence>
               {phase === "sealed" && (
-                <motion.div className="sealed-head" exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
+                <motion.div
+                  className="sealed-head"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0, transition: { delay: LANDED_MS / 1000, duration: 0.6 } }}
+                  exit={{ opacity: 0, y: -10, transition: { duration: 0.3 } }}
+                >
                   <p className="sh-small">{toName},</p>
                   <p className="sh-big">{isTui(card.rel) ? "তোর" : "তোমার"} নামে চিঠি এসেছে</p>
                 </motion.div>
@@ -116,6 +186,7 @@ export function Letter({
         ) : (
           <div className="sheet-live">{face(true)}</div>
         )}
+      </motion.div>
       </motion.div>
 
       {flash && <SindoorFlash />}
