@@ -97,6 +97,17 @@ export function decodeCard(code: string | undefined | null): Card | null {
   }
 }
 
+/** Card sent as JSON by the creator to /api/cards. */
+export function parseCard(raw: unknown): Card | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  const rel = (Object.keys(REL_CODE) as Rel[]).find((k) => k === r.rel) ?? "elder";
+  const sweets = Array.isArray(r.sweets) ? r.sweets.filter((s): s is SweetId => SWEETS.includes(s as SweetId)) : [];
+  const card = normalizeCard({ to: String(r.to ?? ""), from: String(r.from ?? ""), rel, msg: String(r.msg ?? ""), sweets });
+  return card.from && card.msg ? card : null;
+}
+
+/** Fallback link that carries the whole card, used when the database is not reachable. */
 export function cardPath(card: Card) {
   return `/c?d=${encodeCard(card)}`;
 }
