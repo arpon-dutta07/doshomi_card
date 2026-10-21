@@ -25,15 +25,15 @@ const MANIFEST = arg("--manifest", path.join(ROOT, "src", "lib", "art-manifest.t
 /** key: none | white | green.  box: longest side / exact size of the output. */
 const SWEETS = ["rosogolla", "sandesh", "naru", "langcha", "pantua"];
 const JOBS = [
-  { name: "ma-dashami", key: "none", resize: { width: 900, height: 1125, fit: "cover", position: "attention" }, q: 82 },
+  { name: "ma-dashami", key: "none", resize: { width: 900, height: 1125, fit: "cover", position: "centre" }, q: 82 },
   { name: "paan-leaf-1", key: "white", resize: { height: 760 }, q: 86 },
   { name: "paan-leaf-2", key: "white", resize: { height: 760 }, q: 86 },
   ...SWEETS.map((s) => ({ name: `sweet-${s}`, key: "green", resize: { width: 420, height: 420, fit: "inside" }, q: 86 })),
   { name: "box-open", key: "none", resize: { width: 900, height: 900, fit: "cover" }, q: 80 },
   { name: "box-lid", key: "none", resize: { width: 900, height: 900, fit: "cover" }, q: 80 },
   { name: "cord", key: "green", resize: { height: 36 }, q: 86, alsoVertical: "cord-v" },
-  { name: "saree-fabric", key: "none", resize: { width: 1000, withoutEnlargement: true }, q: 74 },
-  { name: "inland-paper", key: "none", resize: { width: 900, withoutEnlargement: true }, q: 78 },
+  { name: "saree-fabric", key: "none", resize: { width: 720, withoutEnlargement: true }, q: 62 },
+  { name: "inland-paper", key: "none", resize: { width: 720, withoutEnlargement: true }, q: 68 },
 ];
 
 const EXTS = [".png", ".jpg", ".jpeg", ".webp"];
@@ -70,12 +70,69 @@ function edgeColour(data, w, h) {
   });
 }
 
+/**
+ * White backdrop: flood-fill in from the border through anything light and colourless (the backdrop and the
+ * soft shadow under the object). Shiny spots inside a leaf can't be reached from the edge, so they stay.
+ * Returns a coverage value per pixel, softened by one pixel at the edge.
+ */
+function whiteForeground(data, w, h) {
+  const n = w * h;
+  const back = new Uint8Array(n);
+  const isBack = (p) => {
+    const r = data[p * 4], g = data[p * 4 + 1], b = data[p * 4 + 2];
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+    return mx > 150 && (mx - mn) / mx < 0.16;
+  };
+  const stack = new Int32Array(n);
+  let sp = 0;
+  const seed = (p) => {
+    if (!back[p] && isBack(p)) {
+      back[p] = 1;
+      stack[sp++] = p;
+    }
+  };
+  for (let x = 0; x < w; x++) {
+    seed(x);
+    seed((h - 1) * w + x);
+  }
+  for (let y = 0; y < h; y++) {
+    seed(y * w);
+    seed(y * w + w - 1);
+  }
+  while (sp) {
+    const p = stack[--sp];
+    const x = p % w, y = (p - x) / w;
+    if (x > 0) seed(p - 1);
+    if (x < w - 1) seed(p + 1);
+    if (y > 0) seed(p - w);
+    if (y < h - 1) seed(p + w);
+  }
+  const cover = new Float32Array(n);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let s = 0, c = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const xx = x + dx, yy = y + dy;
+          if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
+          s += back[yy * w + xx] ? 0 : 1;
+          c++;
+        }
+      }
+      cover[y * w + x] = s / c;
+    }
+  }
+  return cover;
+}
+
 async function keyOut(file, mode) {
   const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const { width: w, height: h } = info;
   const [bR, bG, bB] = edgeColour(data, w, h);
   const bgSpill = Math.max(40, bG - Math.max(bR, bB));
   let minX = w, minY = h, maxX = -1, maxY = -1;
+
+  const fg = mode === "white" ? whiteForeground(data, w, h) : null;
 
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
@@ -85,10 +142,11 @@ async function keyOut(file, mode) {
       if (mode === "green") {
         const spill = g - Math.max(r, b);
         a = 1 - smooth(bgSpill * 0.22, bgSpill * 0.62, spill);
-        if (spill > 0) g = Math.max(r, b) + spill * 0.08; // pull the green cast off the edges
+        // green bounce light from the screen: cap green at the red/blue average so whites stay white, not olive
+        const cap = (r + b) / 2 + 3;
+        if (g > cap) g = cap;
       } else {
-        const d = Math.hypot(r - bR, g - bG, b - bB);
-        a = smooth(24, 90, d); // light grey contact shadows go too; the site adds its own
+        a = fg[y * w + x];
         if (a > 0.02 && a < 1) {
           // undo the blend with the white backdrop so edges don't glow
           r = clamp((r - (1 - a) * bR) / a, 0, 255);
@@ -136,7 +194,8 @@ async function run() {
       // extract() and resize() can't share one pipeline; settle the cut-out first
       const cut = await img.png().toBuffer();
       const outs = [[job.name, sharp(cut).resize(job.resize)]];
-      if (job.alsoVertical) outs.push([job.alsoVertical, sharp(cut).resize(job.resize).rotate(90)]);
+      // sharp rotates before it resizes, so the vertical copy is sized by its new width
+      if (job.alsoVertical) outs.push([job.alsoVertical, sharp(cut).rotate(90).resize({ width: job.resize.height })]);
       for (const [name, pipe] of outs) {
         const buf = await pipe.webp({ quality: job.q, alphaQuality: 90, effort: 5 }).toBuffer();
         fs.writeFileSync(path.join(OUT, `${name}.webp`), buf);

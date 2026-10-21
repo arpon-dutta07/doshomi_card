@@ -155,8 +155,14 @@
 }
 .str {
   position: absolute;
-  background: repeating-linear-gradient(45deg, #c8161f 0 4px, #fff4ee 4px 7px);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+/* the real twisted cord photo when it exists (art/cord), drawn stripes otherwise */
+.str.h {
+  background: var(--cord-h, repeating-linear-gradient(45deg, #c8161f 0 4px, #fff4ee 4px 7px)) left center / auto 100% repeat-x;
+}
+.str.v {
+  background: var(--cord-v, repeating-linear-gradient(45deg, #c8161f 0 4px, #fff4ee 4px 7px)) center top / 100% auto repeat-y;
 }
 .str.v {
   left: calc(var(--knot-x) - 2.5px);
@@ -196,7 +202,7 @@
   width: 5px;
   height: 104px;
   flex: none;
-  background: repeating-linear-gradient(45deg, #c8161f 0 4px, #fff4ee 4px 7px);
+  background: var(--cord-v, repeating-linear-gradient(45deg, #c8161f 0 4px, #fff4ee 4px 7px)) center top / 100% auto repeat-y;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 .tassel {
@@ -253,4 +259,35 @@
   outline: 0;
   /* printed in red ink on the cardboard */
   mix-blend-mode: multiply;
+}
+
+/* tied knot from the cord photo */
+.cord-knot {
+  position: absolute;
+  left: var(--knot-x);
+  top: var(--knot-y);
+  width: calc(var(--box) * 0.13);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+}
+.cord-knot span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 7px;
+  translate: -50% -50%;
+  border-radius: 4px;
+  background: var(--cord-h) center / auto 100% repeat-x;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.cord-knot i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #e04545, #9e1018 70%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 0 0 1.5px rgba(255, 240, 235, 0.55);
 }

@@ -157,5 +157,5 @@ export const DEMO_CARD: Card = {
   from: "বাবাই",
   rel: "elder",
   msg: "Video call-এ তো পা ছোঁয়া যায় না, তাই চিঠিটাই পাঠালাম। বাড়ি গিয়ে আগে তোমার হাতের নাড়ু খাব, তারপর বাকি কথা।",
-  sweets: ["rosogolla", "sandesh", "naru", "langcha"],
+  sweets: ["rosogolla", "sandesh", "naru", "pantua"],
 };

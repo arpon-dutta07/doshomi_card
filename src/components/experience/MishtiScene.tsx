@@ -112,7 +112,7 @@ export function MishtiScene({ card, onNext }: { card: Card; onNext: () => void }
                   <motion.div className="strings" exit={{ opacity: 0, scale: 1.08, transition: { duration: 0.2 } }}>
                     <span className="str v" />
                     <span className="str h" />
-                    <Knot />
+                    {art("cord") ? <CordKnot /> : <Knot />}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -207,6 +207,19 @@ function Doily() {
       <circle cx="100" cy="100" r="74" fill="none" stroke="#e6d6b4" strokeWidth="1.2" />
       <circle cx="100" cy="100" r="54" fill="none" stroke="#e6d6b4" strokeWidth="1" strokeDasharray="2 4" />
     </svg>
+  );
+}
+
+/** With the real cord photo: a plain tied knot made of short twists of the same cord, not a drawn bow. */
+function CordKnot() {
+  return (
+    <span className="cord-knot" aria-hidden>
+      <span style={{ rotate: "28deg", width: "62%" }} />
+      <span style={{ rotate: "-36deg", width: "56%" }} />
+      <span style={{ rotate: "82deg", width: "44%" }} />
+      <span style={{ rotate: "-8deg", width: "36%", translate: "-50% 30%" }} />
+      <i />
+    </span>
   );
 }
 
