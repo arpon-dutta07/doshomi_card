@@ -43,7 +43,7 @@ export function QuickReply({
     from: me,
     rel,
     msg,
-    sweets: ["rosogolla", "sandesh", "naru", "pantua"],
+    sweets: ["rosogolla", "sandesh", "naru", "langcha"],
   });
   const ready = Boolean(out.from && out.msg);
   const full = `/?${new URLSearchParams({ to: out.to, from: out.from, rel, ...(parent ? { parent } : {}) }).toString()}#write`;

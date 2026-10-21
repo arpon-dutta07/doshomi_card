@@ -18,7 +18,7 @@ export function Creator({ initial }: { initial: { to?: string; from?: string; re
   const [from, setFrom] = useState(initial.from ?? "");
   const [rel, setRel] = useState<Rel>(initial.rel ?? "elder");
   const [msg, setMsg] = useState("");
-  const [sweets, setSweets] = useState<SweetId[]>(["rosogolla", "sandesh", "naru", "pantua"]);
+  const [sweets, setSweets] = useState<SweetId[]>(["rosogolla", "sandesh", "naru", "langcha"]);
   const [photo, setPhoto] = useState<string | null>(null);
   const [link, setLink] = useState<string | null>(null);
   const [preview, setPreview] = useState(false);

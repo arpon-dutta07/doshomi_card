@@ -45,6 +45,11 @@ export const ART: Record<string, { w: number; h: number; v: string }> = {
     "h": 1073,
     "v": "af3a1ffb"
   },
+  "sweet-langcha": {
+    "w": 420,
+    "h": 407,
+    "v": "dcf86622"
+  },
   "sweet-naru": {
     "w": 409,
     "h": 420,
