@@ -113,7 +113,9 @@
   text-align: left;
   color: var(--ink);
   background-color: var(--inland);
-  background-image: var(--noise), linear-gradient(170deg, #cfe0f1, #a9c6e3);
+  background-image: var(--noise), linear-gradient(170deg, rgba(110, 150, 200, 0.22), rgba(90, 130, 185, 0.3)),
+    var(--inland-photo, linear-gradient(170deg, #cfe0f1, #a9c6e3));
+  background-size: auto, auto, cover;
   box-shadow: 0 14px 22px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.3);
   border: 0;
   border-radius: 2px;
@@ -340,4 +342,18 @@
   justify-content: center;
   gap: 8px;
   margin-top: 12px;
+}
+
+/* the string laid from short pieces of the real cord photo */
+.mala-cord-real {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.45));
+}
+.mala-cord-real span {
+  position: absolute;
+  height: 5px;
+  translate: -50% -50%;
+  background: var(--cord-h) left center / auto 100% repeat-x;
 }

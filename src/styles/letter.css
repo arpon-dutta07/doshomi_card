@@ -193,10 +193,11 @@
   background-image:
     radial-gradient(circle, rgba(59, 95, 140, 0.8) 1.1px, transparent 1.6px),
     var(--noise),
-    linear-gradient(170deg, #c9ddf0, #b7d0e8);
-  background-size: 7px 4px, auto, auto;
-  background-repeat: repeat-x, repeat, no-repeat;
-  background-position: 0 100%, 0 0, 0 0;
+    linear-gradient(170deg, rgba(110, 150, 200, 0.28), rgba(90, 130, 185, 0.3)),
+    var(--inland-photo, linear-gradient(170deg, #c9ddf0, #b7d0e8));
+  background-size: 7px 4px, auto, auto, cover;
+  background-repeat: repeat-x, repeat, no-repeat, no-repeat;
+  background-position: 0 100%, 0 0, 0 0, center;
   user-select: none;
 }
 .strip-sc {
@@ -245,7 +246,9 @@
   top: 16%;
   color: var(--inland-print);
   background-color: var(--inland);
-  background-image: var(--noise), linear-gradient(170deg, #c6dbef, #aac7e3);
+  background-image: var(--noise), linear-gradient(170deg, rgba(110, 150, 200, 0.28), rgba(90, 130, 185, 0.3)),
+    var(--inland-photo, linear-gradient(170deg, #c6dbef, #aac7e3));
+  background-size: auto, auto, cover;
 }
 .addr-body::before {
   content: "";
@@ -332,7 +335,9 @@
   container-type: size;
   color: var(--inland-print);
   background-color: var(--inland);
-  background-image: var(--noise), linear-gradient(10deg, #c6dbef, #aac7e3);
+  background-image: var(--noise), linear-gradient(10deg, rgba(110, 150, 200, 0.28), rgba(90, 130, 185, 0.3)),
+    var(--inland-photo, linear-gradient(10deg, #c6dbef, #aac7e3));
+  background-size: auto, auto, cover;
 }
 .sender-inner {
   position: absolute;
@@ -363,7 +368,9 @@
   container-type: size;
   color: var(--ink);
   background-color: var(--inland-in);
-  background-image: var(--noise), linear-gradient(160deg, #e5eff8 0%, #d4e3f1 60%, #c8dbee 100%);
+  background-image: var(--noise), linear-gradient(160deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0)),
+    var(--inland-photo, linear-gradient(160deg, #e5eff8 0%, #d4e3f1 60%, #c8dbee 100%));
+  background-size: auto, auto, cover;
   box-shadow: 0 14px 34px rgba(60, 40, 20, 0.18), 0 2px 6px rgba(60, 40, 20, 0.12);
 }
 .crease {

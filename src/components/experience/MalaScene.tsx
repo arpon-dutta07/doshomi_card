@@ -2,6 +2,7 @@
 
 import { animate, AnimatePresence, motion, useMotionValue, useSpring, useTransform, useVelocity, type MotionValue } from "motion/react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { art } from "@/lib/art";
 import type { Card } from "@/lib/card";
 import type { ChainLink } from "@/lib/db";
 import { rng } from "@/lib/rand";
@@ -87,18 +88,45 @@ export function MalaScene({ card, toName, cardId, chain, total, preview, onRepla
     return () => a.stop();
   }, [viewW, fits, trackW, minX, n, x]);
 
-  // The string droops between pins
-  const cord = useMemo(() => {
-    let d = `M0 ${PIN_Y - 6}`;
-    let prev = 0;
-    for (let i = 0; i < slots; i++) {
-      const px = pinX(i);
-      d += ` Q ${(prev + px) / 2} ${PIN_Y + 22} ${px} ${PIN_Y}`;
-      prev = px;
+  // The string droops between pins: one quadratic sag per gap
+  const spans = useMemo(() => {
+    const out: [number, number, number, number, number, number][] = [];
+    let prev: [number, number] = [0, PIN_Y - 6];
+    for (let i = 0; i <= slots; i++) {
+      const end: [number, number] = i < slots ? [pinX(i), PIN_Y] : [trackW, PIN_Y - 6];
+      out.push([prev[0], prev[1], (prev[0] + end[0]) / 2, PIN_Y + 22, end[0], end[1]]);
+      prev = end;
     }
-    d += ` Q ${(prev + trackW) / 2} ${PIN_Y + 22} ${trackW} ${PIN_Y - 6}`;
-    return d;
+    return out;
   }, [slots, trackW]);
+  const cord = useMemo(
+    () => `M0 ${PIN_Y - 6}` + spans.map(([, , cx, cy, ex, ey]) => ` Q ${cx} ${cy} ${ex} ${ey}`).join(""),
+    [spans],
+  );
+  // With the real cord photo, the curve is laid with short straight pieces of it
+  const pieces = useMemo(() => {
+    if (!art("cord")) return [];
+    const out: { x: number; y: number; len: number; deg: number }[] = [];
+    const at = (s: (typeof spans)[number], t: number) => {
+      const [x0, y0, cx, cy, x1, y1] = s;
+      const u = 1 - t;
+      return [u * u * x0 + 2 * u * t * cx + t * t * x1, u * u * y0 + 2 * u * t * cy + t * t * y1];
+    };
+    for (const s of spans) {
+      const steps = Math.max(4, Math.round((s[4] - s[0]) / 12));
+      for (let k = 0; k < steps; k++) {
+        const [ax, ay] = at(s, k / steps);
+        const [bx, by] = at(s, (k + 1) / steps);
+        out.push({
+          x: (ax + bx) / 2,
+          y: (ay + by) / 2,
+          len: Math.hypot(bx - ax, by - ay) + 1.5,
+          deg: (Math.atan2(by - ay, bx - ax) * 180) / Math.PI,
+        });
+      }
+    }
+    return out;
+  }, [spans]);
 
   const first = links[0];
   const sub =
@@ -139,10 +167,21 @@ export function MalaScene({ card, toName, cardId, chain, total, preview, onRepla
           dragElastic={0.12}
           dragTransition={{ power: 0.25, timeConstant: 260 }}
         >
-          <svg className="mala-cord" width={trackW} height={PIN_Y + 30} viewBox={`0 0 ${trackW} ${PIN_Y + 30}`} aria-hidden>
-            <path d={cord} stroke="#b3121c" strokeWidth="3.4" fill="none" strokeLinecap="round" />
-            <path d={cord} stroke="#fff3ea" strokeWidth="3.4" fill="none" strokeDasharray="3 6" strokeLinecap="round" />
-          </svg>
+          {pieces.length ? (
+            <div className="mala-cord-real" aria-hidden>
+              {pieces.map((p, i) => (
+                <span
+                  key={i}
+                  style={{ left: p.x, top: p.y, width: p.len, rotate: `${p.deg}deg`, backgroundPositionX: `${-i * 11}px` }}
+                />
+              ))}
+            </div>
+          ) : (
+            <svg className="mala-cord" width={trackW} height={PIN_Y + 30} viewBox={`0 0 ${trackW} ${PIN_Y + 30}`} aria-hidden>
+              <path d={cord} stroke="#b3121c" strokeWidth="3.4" fill="none" strokeLinecap="round" />
+              <path d={cord} stroke="#fff3ea" strokeWidth="3.4" fill="none" strokeDasharray="3 6" strokeLinecap="round" />
+            </svg>
+          )}
 
           {links.map((l, i) => (
             <Hanging key={`${l.id}-${i}`} left={pinX(i) - CARD_W / 2} swing={swing} delay={i * 0.12} index={i}>

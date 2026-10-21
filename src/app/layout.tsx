@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Atma, Galada, Hind_Siliguri } from "next/font/google";
+import type { CSSProperties } from "react";
+import { art } from "@/lib/art";
 import "./globals.css";
 
 const galada = Galada({ variable: "--font-galada", weight: "400", subsets: ["bengali", "latin"] });
@@ -19,9 +21,18 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+/** Real textures (from art/, see npm run art) handed to the CSS; each rule falls back to its drawn version. */
+const TEXTURES = { "--saree-photo": "saree-fabric", "--inland-photo": "inland-paper", "--cord-h": "cord", "--cord-v": "cord-v" };
+const textureVars = Object.fromEntries(
+  Object.entries(TEXTURES).flatMap(([v, name]) => {
+    const a = art(name);
+    return a ? [[v, `url(${a.src})`]] : [];
+  }),
+) as CSSProperties;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="bn" className={`${galada.variable} ${atma.variable} ${hind.variable}`}>
+    <html lang="bn" className={`${galada.variable} ${atma.variable} ${hind.variable}`} style={textureVars}>
       <body>{children}</body>
     </html>
   );

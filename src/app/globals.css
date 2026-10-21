@@ -60,6 +60,16 @@ button {
     linear-gradient(118deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.4) 52%, rgba(255, 255, 255, 0) 74%),
     radial-gradient(120% 80% at 50% 0%, #fbf6ec 0%, var(--saree) 55%, var(--saree-deep) 100%);
 }
+/* The real garad silk photo under the full-screen scenes (it would blur if stretched down a long page) */
+.stage.saree-bg {
+  background-image:
+    var(--noise),
+    linear-gradient(118deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.25) 52%, rgba(255, 255, 255, 0) 74%),
+    radial-gradient(130% 90% at 50% 40%, rgba(251, 246, 236, 0) 40%, rgba(214, 196, 160, 0.35) 100%),
+    var(--saree-photo, radial-gradient(120% 80% at 50% 0%, #fbf6ec 0%, var(--saree) 55%, var(--saree-deep) 100%));
+  background-size: auto, auto, auto, cover;
+  background-position: 0 0, 0 0, 0 0, center;
+}
 
 /* লালপাড়: temple triangles, a zari line, then the red border */
 .paar {
